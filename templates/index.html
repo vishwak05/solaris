@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">Solaris</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="dropbtn">Dashboard</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('dashboard', type='solar') }}">Solar Production</a></li>
+                        <li><a href="{{ url_for('dashboard', type='battery') }}">Battery Usage</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('reports') }}" class="dropbtn">Reports</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('reports', period='day') }}">Day</a></li>
+                        <li><a href="{{ url_for('reports', period='week') }}">Week</a></li>
+                        <li><a href="{{ url_for('reports', period='month') }}">Month</a></li>
+                        <li><a href="{{ url_for('reports', period='year') }}">Year</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('status') }}" class="dropbtn">Status</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('status', type='panel') }}">Panel Status</a></li>
+                        <li><a href="{{ url_for('status', type='battery') }}">Battery Status</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('forecasts') }}" class="dropbtn">Forecasts</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('forecasts', type='temperature')}}">Temperature</a></li>
+                        <li><a href="{{ url_for('forecasts', type='irradiance')}}">Irradiance</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Welcome Section -->
+    <section class="welcome" id="home">
+        <div class="welcome-content">
+            <h2>Welcome to Solaris</h2>
+            <p>Your gateway to intuitive dashboards, predictive forecasts, and insightful reports to optimize your workflow.</p>
+            <button onclick="redirectToDashboard()">Explore Solaris</button>
+        </div>
+    </section>
+
+    <!-- Modules Section -->
+    <section class="modules">
+        <div class="module">
+            <img src="static/images/bg2.jpg" alt="Reports">
+            <a href="{{ url_for('reports') }}"><h3>Reports</h3></a>
+            <p>Generate detailed reports to understand your system’s performance and make informed decisions efficiently.</p>
+        </div>
+        <div class="module">
+            <img src="static/images/bg3.jpg" alt="Forecasts">
+            <a href="{{ url_for('forecasts') }}"><h3>Forecasts</h3></a>
+            <p>Use predictive analytics to anticipate challenges and opportunities, ensuring proactive solutions for your operations.</p>
+        </div>
+        <div class="module">
+            <img src="static/images/bg4.jpg" alt="Status">
+            <a href="{{ url_for('status') }}"><h3>Status</h3></a>
+            <p>Monitor the current status, usage and health of Solar Panel and Battery.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h4>Solaris</h4>
+            <p>Your trusted platform for optimizing workflows and staying ahead with predictive insights.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboards</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="forecasts.html">Forecasts</a></li>
+                <li><a href="status.html">Status</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Account</h4>
+            <ul>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout">Logout</a></li>
+                <li><a href="login_singup.html">Login</a></li>
+                <li><a href="login_singup.html">Signup</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        function redirectToDashboard() {
+            window.location.href = "{{ url_for('dashboard') }}";
+        }
+    </script>
+</body>
+</html>

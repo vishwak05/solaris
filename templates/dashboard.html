@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        /* Dashboard Styles */
+        .dashboard {
+            padding: 20px;
+        }
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .card:nth-child(1) {
+            grid-column: span 2; /* Production */
+        }
+        .card:nth-child(2) {
+            grid-column: span 2; /* Battery */
+        }
+        .card:nth-child(3) {
+            grid-column: span 2; /* Weather */
+        }
+        .card:nth-child(4) {
+            grid-column: span 4; /* Chart */
+        }
+        .card:nth-child(5) {
+            grid-column: span 2; /* Savings */
+        }
+        .card h3 {
+            margin-bottom: 10px;
+        }
+        .card p {
+            font-size: 1.2em;
+        }
+        .card production-card img, .card .weather-card img {
+            width: 120px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #363636;
+        }
+
+
+        /* Battery Card */
+        .battery-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .battery-card div:first-child {
+            flex: 1;
+        }
+        .battery-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #4caf50;
+            color: #fff;
+            margin-right: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 25px;
+        }
+
+        /* Weather Card */
+        .weather-card img {
+            width: 80px;
+        }
+
+        /* Chart Placeholder */
+        .chart-card .chart-placeholder,
+        .savings-card .chart-placeholder {
+            height: 400px;
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">Solaris</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="dropbtn">Dashboard</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('dashboard', type='solar') }}">Solar Production</a></li>
+                        <li><a href="{{ url_for('dashboard', type='battery') }}">Battery Usage</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('reports') }}" class="dropbtn">Reports</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('reports', period='day') }}">Day</a></li>
+                        <li><a href="{{ url_for('reports', period='week') }}">Week</a></li>
+                        <li><a href="{{ url_for('reports', period='month') }}">Month</a></li>
+                        <li><a href="{{ url_for('reports', period='year') }}">Year</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('status') }}" class="dropbtn">Status</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('status', type='panel') }}">Panel Status</a></li>
+                        <li><a href="{{ url_for('status', type='battery') }}">Battery Status</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('forecasts') }}" class="dropbtn">Forecasts</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('forecasts', type='temperature')}}">Temperature</a></li>
+                        <li><a href="{{ url_for('forecasts', type='irradiance')}}">Irradiance</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="dashboard">
+        <!-- Cards Section -->
+        <div class="cards-container">
+            <!-- Production Card -->
+            <div class="card production-card">
+                <div>
+                    <h3>Solar Production</h3>
+                    <p>Energy Output: <span id="production">Loading...</span> KW</p>
+                </div>
+                <img src="static/images/solar-icon.png" alt="Solar Icon">
+            </div>
+
+            <!-- Battery Card -->
+            <div class="card battery-card">
+                <div>
+                    <h3>Battery Remaining</h3>
+                    <p>Capacity: 3.7 KWh</p>
+                </div>
+                <div class="battery-circle">
+                    45%
+                </div>
+            </div>
+
+            <!-- Weather Card -->
+            <div class="card weather-card">
+                <div>
+                    <h3>Weather</h3>
+                    <p>Temp: <span id="temperature">Loading...</span> °C</p>
+                </div>
+                <img src="static/images/weather-icon.png" alt="Weather Icon">
+            </div>
+
+            <!-- Energy Production Chart -->
+            <div class="card chart-card">
+                <h3>Energy Production</h3>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button id="showEnergyBtn">Show Energy Production</button>
+                    <button id="showBatteryBtn">Show Battery Usage</button>
+                </div>
+                <div class="chart-placeholder">
+                    <canvas id="energyProductionChart"></canvas>
+                    <canvas id="batteryUsageChart" style="display: none;"></canvas>
+                </div>
+            </div>
+            
+            <!-- Savings Card -->
+            <div class="card savings-card">
+                <h3>Savings</h3>
+                <p><span id="savingsAmount">Loading...</span> Rs</p>
+                <div class="chart-placeholder">
+                    <canvas id="savingsChart"></canvas>
+                </div>
+                
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h4>Solaris</h4>
+            <p>Your trusted platform for optimizing workflows and staying ahead with predictive insights.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboards</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="forecasts.html">Forecasts</a></li>
+                <li><a href="status.html">Status</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Account</h4>
+            <ul>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout">Logout</a></li>
+                <li><a href="login_singup.html">Login</a></li>
+                <li><a href="login_singup.html">Signup</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchWeatherData() {
+            try {
+                const response = await fetch("api/weather");
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                return null;
+            }
+        }
+
+        async function updateData() {
+            const data = await fetchWeatherData();
+
+            if (data.length > 0) {
+                const latestWeather = data[0]; // Get the first entry
+                document.getElementById("temperature").innerText = latestWeather.temperature;
+                document.getElementById("production").innerText = estimateEnergyProd(latestWeather.irradiance).toFixed(2);
+            } else {
+                document.getElementById("temperature").innerText = "N/A";
+            }
+        }
+
+        // Function to convert "YYYY-MM-DD HH:mm:ss" to "HH AM/PM"
+        function formatTime(datetime) {
+            const dateObj = new Date(datetime);
+            let hours = dateObj.getHours();
+            const minutes = dateObj.getMinutes();
+            const ampm = hours >= 12 ? "PM" : "AM";
+            hours = hours % 12 || 12; // Convert 0 to 12-hour format
+
+            return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+        }
+        
+        function estimateEnergyProd(irradiance) {
+            const powerOutput = 1.0;
+            const panelEfficiency = 0.18; // 18% efficiency
+            const panelArea = 6.5; // 1 kW panel area in m²
+
+            // Energy production formula
+            return Math.min(powerOutput, (irradiance * panelEfficiency * panelArea) / 1000); // Convert W to kW
+        }
+
+        function estimateSavings(energyProduction) {
+            const costPerKWh = 8 // 8rs per KWh;
+            return energyProduction * costPerKWh;
+        }
+        
+        async function updateEnergyProdChart() {
+            const data = await fetchWeatherData();
+
+            if (!data || data.lenth < 9) {
+                console.error("Insufficient data available for charts");
+                return;
+            }
+
+            const selectedData = data.slice(0,9);
+            const timeLabels = selectedData.map(entry => formatTime(entry.datetime));
+            const irradianceData = selectedData.map(entry => entry.irradiance);
+
+            // Calculate energy production for each timestamp
+            const productionData = irradianceData.map(irradiance => estimateEnergyProd(irradiance));
+            const totalEnergy = productionData.reduce((sum, entry) => sum + entry, 0);
+            const savings = estimateSavings(totalEnergy);
+
+            // Update the savings card
+            document.getElementById("savingsAmount").innerText = savings.toFixed(2);
+
+            // Get the canvas element for the chart
+            const ctx = document.getElementById('energyProductionChart').getContext('2d');
+            
+            // Create the chart
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'Energy Production (kW)',
+                        data: productionData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.6)', // Green bars
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time of Day'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Energy Production (kW)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Render Savings Chart
+            const savingsCtx = document.getElementById("savingsChart").getContext("2d");
+            new Chart(savingsCtx, {
+                type: "line",
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: "Savings (Rs)",
+                        data: productionData.map(estimateSavings),
+                        borderColor: "#4CAF50",
+                        backgroundColor: "rgba(76, 175, 80, 0.2)",
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: "Time of Day" } },
+                        y: { title: { display: true, text: "Savings (Rs)" } }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('showEnergyBtn').addEventListener('click', function() {
+            document.getElementById('energyProductionChart').style.display = 'block';
+            document.getElementById('batteryUsageChart').style.display = 'none';
+        });
+
+        document.getElementById('showBatteryBtn').addEventListener('click', function() {
+            document.getElementById('energyProductionChart').style.display = 'none';
+            document.getElementById('batteryUsageChart').style.display = 'block';
+        });
+
+        // Function to render battery usage chart
+        function renderBatteryUsageChart() {
+            const ctx = document.getElementById('batteryUsageChart').getContext('2d');
+            
+            // Example data for battery usage
+            const batteryData = [45, 50, 55, 60, 65, 70, 75, 80, 85]; // Battery percentage over time
+            const timeLabels = ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'];
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'Battery Usage (%)',
+                        data: batteryData,
+                        borderColor: '#FF5722',
+                        backgroundColor: 'rgba(255, 87, 34, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: "Time of Day" } },
+                        y: { title: { display: true, text: "Battery Usage (%)" } }
+                    }
+                }
+            });
+        }
+
+        // Call function to initialize charts
+        updateData();
+        renderBatteryUsageChart();
+        updateEnergyProdChart();
+    </script>
+</body>
+</html>

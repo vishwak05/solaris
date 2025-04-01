@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        /* Forecast Page */
+        .forecast-page {
+            padding: 20px;
+        }
+        .forecast-page h2 {
+            text-align: center;
+        }
+
+        /* Forecast Indicators */
+        .forecast-indicators {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .indicator {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .indicator img {
+            width: 80px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .chart {
+            width: 100%;
+            min-width: 600px;
+            min-height: 300px;
+        }
+        .chart h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .chart canvas {
+            width: 100%;
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">Solaris</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="dropbtn">Dashboard</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('dashboard', type='solar') }}">Solar Production</a></li>
+                        <li><a href="{{ url_for('dashboard', type='battery') }}">Battery Usage</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('reports') }}" class="dropbtn">Reports</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('reports', period='day') }}">Day</a></li>
+                        <li><a href="{{ url_for('reports', period='week') }}">Week</a></li>
+                        <li><a href="{{ url_for('reports', period='month') }}">Month</a></li>
+                        <li><a href="{{ url_for('reports', period='year') }}">Year</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('status') }}" class="dropbtn">Status</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('status', type='panel') }}">Panel Status</a></li>
+                        <li><a href="{{ url_for('status', type='battery') }}">Battery Status</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('forecasts') }}" class="dropbtn">Forecasts</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('forecasts', type='temperature')}}">Temperature</a></li>
+                        <li><a href="{{ url_for('forecasts', type='irradiance')}}">Irradiance</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Forecast Section -->
+    <main class="forecast-page">
+        <h2>Weather Forecast</h2>
+
+        <!-- Top Indicators -->
+        <div class="forecast-indicators">
+            <!-- Temperature -->
+            <div class="indicator">
+                <div>
+                    <h3>Temperature</h3>
+                    <p><span id="temperature">Loading...</span> °C</p>
+                </div>
+                <img src="static/images/temp-icon.png" alt="Temperature Icon">
+            </div>
+
+            <!-- Irradiance -->
+            <div class="indicator">
+                <div>
+                    <h3>Solar Irradiance</h3>
+                    <p><span id="irradiance">Loading...</span> W/m²</p>
+                </div>
+                <img src="static/images/solar-icon.png" alt="Solar Icon">
+            </div>
+
+            <!-- Precipitation, Humidity, Wind -->
+            <div class="indicator details">
+                <div>
+                    <h3>Weather</h3>
+                    <p>Precipitation: <span id="precipitation">Loading...</span> %</p>
+                    <p>Humidity: <span id="humidity">Loading...</span> %</p>
+                    <p>Wind: <span id="wind">Loading...</span> km/h</p>
+                </div>
+                <img src="static/images/weather-icon.png" alt="Weather Icon">
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart">
+                <h3>Temperature Forecast</h3>
+                <canvas id="temperatureChart"></canvas>
+            </div>
+            <div class="chart">
+                <h3>Irradiance Forecast</h3>
+                <canvas id="irradianceChart"></canvas>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h4>Solaris</h4>
+            <p>Your trusted platform for optimizing workflows and staying ahead with predictive insights.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboards</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="forecasts.html">Forecasts</a></li>
+                <li><a href="status.html">Status</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Account</h4>
+            <ul>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout">Logout</a></li>
+                <li><a href="login_singup.html">Login</a></li>
+                <li><a href="login_singup.html">Signup</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchWeatherData() {
+            try {
+                const response = await fetch("api/weather");
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                return null;
+            }
+        }
+
+        // Function to update the latest weather data in the UI
+        async function updateLatestWeatherData() {
+            const data = await fetchWeatherData();
+                
+            if (data.length > 0) {
+                const latestWeather = data[0]; // Get first entry
+                document.getElementById("temperature").innerText = latestWeather.temperature;
+                document.getElementById("irradiance").innerText = latestWeather.irradiance.toFixed(2);
+                document.getElementById("precipitation").innerText = latestWeather.precipitation;
+                document.getElementById("humidity").innerText = latestWeather.humidity;
+                document.getElementById("wind").innerText = latestWeather.wind_speed;
+            }
+            else {
+                ["temperature", "irradiance", "precipitation", "humidity", "wind"].forEach(id => {
+                    document.getElementById(id).innerText = "N/A";
+                });
+            }
+        }
+
+        // Function to convert "YYYY-MM-DD HH:mm:ss" to "HH AM/PM"
+        function formatTime(datetime) {
+            const dateObj = new Date(datetime);
+            let hours = dateObj.getHours();
+            const minutes = dateObj.getMinutes();
+            const ampm = hours >= 12 ? "PM" : "AM";
+            hours = hours % 12 || 12; // Convert 0 to 12-hour format
+
+            return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+        }
+
+        // Function to update charts
+        async function updateCharts() {
+            const data = await fetchWeatherData();
+            if (!data || data.length < 9) {
+                console.error("Insufficient data available for charts.");
+                return;
+            }
+
+            const selectedData = data.slice(0, 9);
+            const timeLabels = selectedData.map(entry => formatTime(entry.datetime));
+            const tempData = selectedData.map(entry => entry.temperature);
+            const irradianceData = selectedData.map(entry => entry.irradiance);
+
+            // Temperature Chart
+            const tempCtx = document.getElementById("temperatureChart").getContext("2d");
+            new Chart(tempCtx, {
+                type: "line",
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: "Temperature (°C)",
+                        data: tempData,
+                        backgroundColor: "rgba(33,150,243,0.6)",
+                        borderColor: "#2196f3",
+                        borderWidth: 2,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: "top" } },
+                    scales: { x: { title: { display: true, text: "Time" } }, y: { title: { display: true, text: "°C" } } }
+                }
+            });
+
+            // Irradiance Chart
+            const irrCtx = document.getElementById("irradianceChart").getContext("2d");
+            new Chart(irrCtx, {
+                type: "line",
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: "Irradiance (W/m²)",
+                        data: irradianceData,
+                        backgroundColor: "rgba(255,193,7,0.6)",
+                        borderColor: "#ffc107",
+                        borderWidth: 2,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: "top" } },
+                    scales: { x: { title: { display: true, text: "Time" } }, y: { title: { display: true, text: "W/m²" } } }
+                }
+            });
+        }
+
+        updateLatestWeatherData();
+        updateCharts();
+    </script>
+</body>
+</html>

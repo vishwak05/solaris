@@ -1,0 +1,15 @@
+.env
+.vscode
+<<<<<<< HEAD
+/venv
+/datasets/energy_usage.txt
+/datasets/energy_usage.csv
+/ml_models
+/utils/__pycache__
+/utils/cache
+/notebooks/.ipynb_checkpoints
+/notebooks/.cache.sqlite
+/Archives
+=======
+/venv
+>>>>>>> parent of 94a0210 (Modelling and Backend)

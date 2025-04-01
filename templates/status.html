@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        /* Status Page */
+        .status-page {
+            padding: 20px;
+        }
+        .status-page h2 {
+            text-align: center;
+        }
+
+        /* Status Container */
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .card h2 {
+            margin-bottom: 15px;
+        }
+        .card p {
+            margin-bottom: 10px;
+        }
+
+        /* Status Indicators */
+        .status-active {
+            color: green;
+        }
+        .status-charging {
+            color: orange;
+        }
+
+        .details-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .details-section img {
+            margin-right: 30px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            display: flex;
+            justify-content: space-between;
+        }
+        .chart {
+            width: 45%;
+        }
+        .chart canvas {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">Solaris</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="dropbtn">Dashboard</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('dashboard', type='solar') }}">Solar Production</a></li>
+                        <li><a href="{{ url_for('dashboard', type='battery') }}">Battery Usage</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('reports') }}" class="dropbtn">Reports</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('reports', period='day') }}">Day</a></li>
+                        <li><a href="{{ url_for('reports', period='week') }}">Week</a></li>
+                        <li><a href="{{ url_for('reports', period='month') }}">Month</a></li>
+                        <li><a href="{{ url_for('reports', period='year') }}">Year</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('status') }}" class="dropbtn">Status</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('status', type='panel') }}">Panel Status</a></li>
+                        <li><a href="{{ url_for('status', type='battery') }}">Battery Status</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('forecasts') }}" class="dropbtn">Forecasts</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('forecasts', type='temperature')}}">Temperature</a></li>
+                        <li><a href="{{ url_for('forecasts', type='irradiance')}}">Irradiance</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="status-page">
+        <h2>Solar Panel & Battery Status</h2>
+
+        <!-- Solar Panel Status -->
+        <div class="status-container">
+            <!-- Solar Panel Card -->
+            <div class="card solar-panel-card">
+                <div class="details-section">
+                    <div>
+                        <h2>Solar Panel Status</h2>
+                        <p><strong>Voltage: </strong>20V</p>
+                        <p><strong>Current: </strong>10A</p>
+                        <p><strong>Wattage: </strong>200 KW</p>
+                        <p><strong>Solar Panel Status: </strong><span class="status-active">Active</span></p>
+                    </div>
+                    <img src="static/images/solar-icon.png" alt="Solar Icon">
+                </div>
+
+                <!-- Charts -->
+                <div class="chart-section">
+                    <div class="chart">
+                        <p><strong>Panel Usage: </strong>51 Watts</p>
+                        <canvas id="solarUsageChart"></canvas>
+                    </div>
+                    <div class="chart">
+                        <p><strong>Panel Health: </strong>98.4%</p>
+                        <canvas id="solarHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battery Card -->
+            <div class="card battery-card">
+                <div class="details-section">
+                    <div>
+                        <h2>Battery Status</h2>
+                        <p><strong>Voltage: </strong>37V</p>
+                        <p><strong>Current: </strong>10A</p>
+                        <p><strong>Capacity: </strong>35%</p>
+                        <p><strong>Battery Status: </strong> <span class="status-charging">Charging</span></p>
+                    </div>
+                    <img src="static/images/battery-icon.png" alt="Battery Icon">
+                </div>
+                
+
+                <!-- Charts -->
+                <div class="chart-section">
+                    <div class="chart">
+                        <p><strong>Battery Usage: </strong>3.2 KWh</p>
+                        <canvas id="batteryUsageChart"></canvas>
+                    </div>
+                    <div class="chart">
+                        <p><strong>Battery Health: </strong>99.5%</p>>
+                        <canvas id="batteryHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h4>Solaris</h4>
+            <p>Your trusted platform for optimizing workflows and staying ahead with predictive insights.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboards</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="forecasts.html">Forecasts</a></li>
+                <li><a href="status.html">Status</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Account</h4>
+            <ul>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout">Logout</a></li>
+                <li><a href="login_singup.html">Login</a></li>
+                <li><a href="login_singup.html">Signup</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize Solar Panel and Battery Data
+        const solarData = {
+            voltage: 200,
+            current: 10,
+            wattage: 400,
+            status: "Active",
+            health: [100.0, 100.0, 99.9, 99.8, 99.6, 99.5, 99.3, 99.0, 98.8, 98.7, 98.6, 98.4],
+            usage: [52, 64, 57, 70, 79, 75, 66, 77, 52, 37, 42, 51],
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        };
+
+        const batteryData = {
+            voltage: 30,
+            current: 10,
+            percentage: 35,
+            status: "Charging",
+            health: [100.0, 100.0, 99.9, 99.9, 99.8, 99.8, 99.7, 99.7, 99.6, 99.6, 99.6, 99.5],
+            usage: [3.7, 3.2, 2.7, 2.2, 2.3, 2.5, 2.6, 3.8, 3.5, 3.1, 3.7, 3.2],
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        };
+
+        // Create Solar Panel Usage Chart
+        const solarUsageCtx = document.getElementById("solarUsageChart").getContext("2d");
+        new Chart(solarUsageCtx, {
+            type: "line",
+            data: {
+                labels: solarData.labels,
+                datasets: [{
+                    label: "Solar Usage (W)",
+                    data: solarData.usage,
+                    borderColor: "#4caf50",
+                    backgroundColor: "rgba(76, 175, 80, 0.2)",
+                    fill: true,
+                    tension: 0.3,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    x: { title: { display: true, text: "Months" } },
+                    y: { title: { display: true, text: "Usage (W)" } },
+                },
+            },
+        });
+
+        // Create Solar Panel Health Chart
+        const solarHealthCtx = document.getElementById("solarHealthChart").getContext("2d");
+        new Chart(solarHealthCtx, {
+            type: "line",
+            data: {
+                labels: solarData.labels,
+                datasets: [{
+                    label: "Solar Health (%)",
+                    data: solarData.health,
+                    borderColor: "#2196f3",
+                    backgroundColor: "rgba(33, 150, 243, 0.2)",
+                    fill: true,
+                    tension: 0.3,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    x: { title: { display: true, text: "Days" } },
+                    y: { title: { display: true, text: "Health (%)" } },
+                },
+            },
+        });
+
+        // Battery Usage Chart
+        const batteryUsageCtx = document.getElementById("batteryUsageChart").getContext("2d");
+        new Chart(batteryUsageCtx, {
+            type: "line",
+            data: {
+                labels: batteryData.labels,
+                datasets: [{
+                    label: "Battery Usage (W)",
+                    data: batteryData.usage,
+                    borderColor: "#ff9800",
+                    backgroundColor: "rgba(255, 152, 0, 0.2)",
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false } // Hide legend for simplicity
+                },
+                scales: {
+                    x: { title: { display: true, text: "Days" } }, // X-axis label
+                    y: { title: { display: true, text: "Usage (W)" } } // Y-axis label
+                }
+            }
+        });
+
+        // Battery Health Chart
+        const batteryHealthCtx = document.getElementById("batteryHealthChart").getContext("2d");
+        new Chart(batteryHealthCtx, {
+            type: "line",
+            data: {
+                labels: batteryData.labels,
+                datasets: [{
+                    label: "Battery Health (%)",
+                    data: batteryData.health,
+                    borderColor: "#f44336",
+                    backgroundColor: "rgba(244, 67, 54, 0.2)",
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false } // Hide legend for simplicity
+                },
+                scales: {
+                    x: { title: { display: true, text: "Days" } }, // X-axis label
+                    y: { title: { display: true, text: "Health (%)" } } // Y-axis label
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

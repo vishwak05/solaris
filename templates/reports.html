@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris</title>
+    <link rel="stylesheet" href="static/style.css">
+    <style>
+        /* Report Section */
+        .report {
+            padding: 20px;
+        }
+
+        /* Top Indicators */
+        .top-indicators {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .indicator {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+        }
+
+        /* View Options */
+        .view-options {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .view-options button {
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            background-color: #000;
+            color: #fff;
+            cursor: pointer;
+        }
+        .view-options button:hover {
+            background-color: #444;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .chart-section h3 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">Solaris</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="dropbtn">Dashboard</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('dashboard', type='solar') }}">Solar Production</a></li>
+                        <li><a href="{{ url_for('dashboard', type='battery') }}">Battery Usage</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('reports') }}" class="dropbtn">Reports</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('reports', period='day') }}">Day</a></li>
+                        <li><a href="{{ url_for('reports', period='week') }}">Week</a></li>
+                        <li><a href="{{ url_for('reports', period='month') }}">Month</a></li>
+                        <li><a href="{{ url_for('reports', period='year') }}">Year</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('status') }}" class="dropbtn">Status</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('status', type='panel') }}">Panel Status</a></li>
+                        <li><a href="{{ url_for('status', type='battery') }}">Battery Status</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="{{ url_for('forecasts') }}" class="dropbtn">Forecasts</a>
+                    <ul class="dropdown-content">
+                        <li><a href="{{ url_for('forecasts', type='temperature')}}">Temperature</a></li>
+                        <li><a href="{{ url_for('forecasts', type='irradiance')}}">Irradiance</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="report">
+        <!-- Top Indicators -->
+        <div class="top-indicators">
+            <div class="indicator"><strong>Total Days: </strong><span id="days">1</span></div>
+            <div class="indicator"><strong>Total Production: </strong><span id="solar-production">2 KW</span></div>
+            <div class="indicator"><strong>Total Savings: </strong><span id="total-savings">25 Rs</span></div>
+            
+            <!-- View Options -->
+            <div class="view-options">
+                <button onclick="updateReport('day')">Day</button>
+                <button onclick="updateReport('week')">Week</button>
+                <button onclick="updateReport('month')">Month</button>
+                <button onclick="updateReport('year')">Year</button>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <h3 id="chartTitle">Energy Production - Day</h3>
+            <canvas id="energyChart"></canvas>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-column">
+            <h4>Solaris</h4>
+            <p>Your trusted platform for optimizing workflows and staying ahead with predictive insights.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboards</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="forecasts.html">Forecasts</a></li>
+                <li><a href="status.html">Status</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Account</h4>
+            <ul>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout">Logout</a></li>
+                <li><a href="login_singup.html">Login</a></li>
+                <li><a href="login_singup.html">Signup</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const reportData = {
+            day: {
+                days: "1",
+                production: "2 KW",
+                savings: "25 Rs",
+                labels: ["12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM"],
+                chartData: [0.0, 0.0, 0.1, 0.7, 1.0, 1.0, 0.3, 0.0] },
+            week: {
+                days: "7",
+                production: "18 KW",
+                savings: "180 Rs",
+                labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                chartData: [2, 3, 2.9, 2.6, 2.5, 2.2, 3.0] },
+            month: {
+                days: "30",
+                production: "60 KW",
+                savings: "1,150 Rs",
+                labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+                chartData: [13.1, 15.9, 17.5, 18.2] },
+            year: {
+                days: "365",
+                production: "720 KW",
+                savings: "15,550 Rs",
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                chartData: [52, 64, 57, 70, 79, 75, 66, 77, 52, 37, 42, 51] }
+        };
+
+        // Initialize Chart
+        let ctx = document.getElementById("energyChart").getContext("2d");
+        let energyChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: reportData.day.labels,
+                datasets: [{
+                    label: "Energy Production (KW)",
+                    data: reportData.day.chartData,
+                    borderColor: "#4caf50",
+                    backgroundColor: "rgba(76, 175, 80, 0.2)",
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Time Period"
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Energy Production (kW)"
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Update Report Functionality
+        function updateReport(view) {
+            const data = reportData[view];
+
+            //Update Chart Title
+            document.getElementById("chartTitle").textContent = `Energy Production - ${view.charAt(0).toUpperCase() + view.slice(1)}`;
+            
+            // Update indicators
+            document.getElementById("days").textContent = `${data.days}`;
+            document.getElementById("solar-production").textContent = `${data.production}`;
+            document.getElementById("total-savings").textContent = `${data.savings}`;
+                
+            // Update Chart Data
+            energyChart.data.labels = data.labels;
+            energyChart.data.datasets[0].data = data.chartData; 
+            energyChart.update();
+        }
+    </script>
+</body>
+</html>
