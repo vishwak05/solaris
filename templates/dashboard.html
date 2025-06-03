@@ -43,6 +43,15 @@
         .card p {
             font-size: 1.2em;
         }
+        .production-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .production-card div:first-child {
+            flex: 1;
+        }
         .card production-card img, .card .weather-card img {
             width: 120px;
         }
@@ -96,6 +105,9 @@
             height: 400px;
             background-color: #ffffff;
         }
+        .savingsChart {
+            height: 500px;
+        }
     </style>
 </head>
 <body>
@@ -146,7 +158,8 @@
             <div class="card production-card">
                 <div>
                     <h3>Solar Production</h3>
-                    <p>Energy Output: <span id="production">Loading...</span> KW</p>
+                    <p>Energy Output: <span id="solar-output">3.2</span> KW</p>
+                    <p>Estimated Production: <span id="totalProduction">Loading...</span> KW</p>
                 </div>
                 <img src="static/images/solar-icon.png" alt="Solar Icon">
             </div>
@@ -154,11 +167,12 @@
             <!-- Battery Card -->
             <div class="card battery-card">
                 <div>
-                    <h3>Battery Remaining</h3>
-                    <p>Capacity: 3.7 KWh</p>
+                    <h3>Battery Details</h3>
+                    <p>Status: <span id="battery-status">Loading...</span></p>
+                    <p>Capacity: <span id="battery-remaining">Loading...</span> KWh</p>
                 </div>
                 <div class="battery-circle">
-                    45%
+                    <p><span id="battery-percentage"></span> %</p>
                 </div>
             </div>
 
@@ -226,10 +240,10 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        async function fetchWeatherData() {
+        async function fetchSolarData() {
             try {
-                const response = await fetch("api/weather");
-                const data = await response.json();
+                const response = await fetch("api/decisions");
+                const data = response.json();
                 return data;
             } catch (error) {
                 console.error("Error fetching weather data:", error);
@@ -237,130 +251,147 @@
             }
         }
 
-        async function updateData() {
-            const data = await fetchWeatherData();
+        function formatTime(timeStr) {
+            const timeMatch = timeStr.match(/\d{2}:\d{2}:\d{2}/);
+            if (!timeMatch) return "Invalid time";
+            let [hour, minute, second] = timeMatch[0].split(':').map(Number);
 
-            if (data.length > 0) {
-                const latestWeather = data[0]; // Get the first entry
-                document.getElementById("temperature").innerText = latestWeather.temperature;
-                document.getElementById("production").innerText = estimateEnergyProd(latestWeather.irradiance).toFixed(2);
-            } else {
-                document.getElementById("temperature").innerText = "N/A";
-            }
+            // 12-hour conversion
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            let hour12 = hour % 12;
+            if (hour12 === 0) hour12 = 12;
+
+            // Format with leading zeros for minutes
+            return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
         }
 
-        // Function to convert "YYYY-MM-DD HH:mm:ss" to "HH AM/PM"
-        function formatTime(datetime) {
-            const dateObj = new Date(datetime);
-            let hours = dateObj.getHours();
-            const minutes = dateObj.getMinutes();
-            const ampm = hours >= 12 ? "PM" : "AM";
-            hours = hours % 12 || 12; // Convert 0 to 12-hour format
-
-            return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-        }
-        
-        function estimateEnergyProd(irradiance) {
-            const powerOutput = 1.0;
-            const panelEfficiency = 0.18; // 18% efficiency
-            const panelArea = 6.5; // 1 kW panel area in m²
-
-            // Energy production formula
-            return Math.min(powerOutput, (irradiance * panelEfficiency * panelArea) / 1000); // Convert W to kW
-        }
-
-        function estimateSavings(energyProduction) {
-            const costPerKWh = 8 // 8rs per KWh;
-            return energyProduction * costPerKWh;
-        }
-        
-        async function updateEnergyProdChart() {
-            const data = await fetchWeatherData();
-
-            if (!data || data.lenth < 9) {
-                console.error("Insufficient data available for charts");
-                return;
+        async function updateDashboard() {
+            const data = await fetchSolarData();
+            if (!data || data.length === 0 || !Array.isArray(data)) {
+                throw new Error('Invalid or empty API');
             }
 
-            const selectedData = data.slice(0,9);
-            const timeLabels = selectedData.map(entry => formatTime(entry.datetime));
-            const irradianceData = selectedData.map(entry => entry.irradiance);
+            // Update real-time metrics
+            const current = data[0];
+            document.getElementById("temperature").textContent = current.temperature.toFixed(2);
+            // document.getElementById("solar-output").textContent = current.solar_output.toFixed(2);
+            document.getElementById("battery-remaining").textContent = current.battery_charge.toFixed(2);
+            document.getElementById("battery-status").textContent = current.battery_status;
+            document.getElementById("battery-percentage").textContent = current.battery_percentage.toFixed(0);
 
-            // Calculate energy production for each timestamp
-            const productionData = irradianceData.map(irradiance => estimateEnergyProd(irradiance));
-            const totalEnergy = productionData.reduce((sum, entry) => sum + entry, 0);
-            const savings = estimateSavings(totalEnergy);
+            // Update charts with 7-day data
+            updateProductionChart(data);
+            updateBatteryChart(data);
+            updateSavings(data);
+        }
 
-            // Update the savings card
-            document.getElementById("savingsAmount").innerText = savings.toFixed(2);
-
-            // Get the canvas element for the chart
+        function updateProductionChart(data) {
             const ctx = document.getElementById('energyProductionChart').getContext('2d');
+            const chartData = {
+                labels: data.slice(0,24).map(d => formatTime(d.time)),
+                datasets: [{
+                    label: 'Solar Output (kW)',
+                    data: data.map(d => d.solar_output),
+                    backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                    borderColor: 'rgba(76, 175, 80, 1)'
+                }]
+            };
             
-            // Create the chart
+            new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Energy (kW)' } }
+                    }
+                }
+            });
+        }
+
+        function updateBatteryChart(data) {
+            const ctx = document.getElementById('batteryUsageChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: timeLabels,
+                    labels: data.map(d => formatTime(d.time)),
                     datasets: [{
-                        label: 'Energy Production (kW)',
-                        data: productionData,
-                        backgroundColor: 'rgba(76, 175, 80, 0.6)', // Green bars
-                        borderColor: 'rgba(76, 175, 80, 1)',
-                        borderWidth: 1
+                        label: 'Battery Percentage',
+                        data: data.map(d => d.battery_percentage),
+                        backgroundColor: 'rgba(255, 165, 0, 0.6)'
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
                     scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time of Day'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Energy Production (kW)'
-                            }
-                        }
+                        y: { max: 100 }
                     }
                 }
             });
+        }
 
-            // Render Savings Chart
-            const savingsCtx = document.getElementById("savingsChart").getContext("2d");
-            new Chart(savingsCtx, {
-                type: "line",
+        function updateSavingsChart(data) {
+            // Filter to 24 hours (first 24 entries)
+            const hourlyData = data.slice(0, 24);
+
+            // Select every 4th hour for labels and data
+            const interval = 4;
+            const selectedPoints = [];
+            for (let i = 0; i < hourlyData.length; i += interval) {
+                selectedPoints.push(hourlyData[i]);
+            }
+
+            // Prepare labels and savings data
+            const labels = selectedPoints.map(d => formatTime(d.time));
+            const savingsPerHour = selectedPoints.map(d => (d.solar_output * 8).toFixed(2)); // 8 Rs/kWh
+
+            // Get context
+            const ctx = document.getElementById('savingsChart').getContext('2d');
+
+            // Destroy previous chart instance if needed
+            if (window.savingsChartInstance) {
+                window.savingsChartInstance.destroy();
+            }
+
+            // Create the line chart
+            window.savingsChartInstance = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: timeLabels,
+                    labels: labels,
                     datasets: [{
-                        label: "Savings (Rs)",
-                        data: productionData.map(estimateSavings),
-                        borderColor: "#4CAF50",
-                        backgroundColor: "rgba(76, 175, 80, 0.2)",
+                        label: 'Savings (Rs)',
+                        data: savingsPerHour,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
                         borderWidth: 2,
-                        fill: true
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#388e3c'
                     }]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: true },
+                        title: { display: true, text: 'Savings Over 24 Hours (4-hour intervals)' }
                     },
                     scales: {
-                        x: { title: { display: true, text: "Time of Day" } },
-                        y: { title: { display: true, text: "Savings (Rs)" } }
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Savings (Rs)' } }
                     }
                 }
             });
+        }
+
+
+        function updateSavings(data) {
+            const totalProduction = data.reduce((sum, d) => sum + d.solar_output, 0);
+            document.getElementById("totalProduction").textContent = totalProduction.toFixed(2);
+            document.getElementById("savingsAmount").textContent = 
+                (totalProduction * 8).toFixed(2); // 8 Rs/kWh
+            updateSavingsChart(data);
         }
 
         document.getElementById('showEnergyBtn').addEventListener('click', function() {
@@ -373,44 +404,11 @@
             document.getElementById('batteryUsageChart').style.display = 'block';
         });
 
-        // Function to render battery usage chart
-        function renderBatteryUsageChart() {
-            const ctx = document.getElementById('batteryUsageChart').getContext('2d');
-            
-            // Example data for battery usage
-            const batteryData = [45, 50, 55, 60, 65, 70, 75, 80, 85]; // Battery percentage over time
-            const timeLabels = ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'];
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: timeLabels,
-                    datasets: [{
-                        label: 'Battery Usage (%)',
-                        data: batteryData,
-                        borderColor: '#FF5722',
-                        backgroundColor: 'rgba(255, 87, 34, 0.2)',
-                        borderWidth: 2,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: "Time of Day" } },
-                        y: { title: { display: true, text: "Battery Usage (%)" } }
-                    }
-                }
-            });
-        }
-
-        // Call function to initialize charts
-        updateData();
-        renderBatteryUsageChart();
-        updateEnergyProdChart();
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            setInterval(updateDashboard, 300000); // Refresh every 5 minutes
+        });
     </script>
 </body>
 </html>
