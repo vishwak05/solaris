@@ -8,6 +8,10 @@ def fetch_decisions():
     try:
         forecasted_data = decision_making()
         forecasted_data.reset_index(inplace=True)
+
+        if 'time' in forecasted_data.columns:
+            forecasted_data['time'] = forecasted_data['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+        
         return forecasted_data.to_dict("records")
     except Exception as e:
         print(f"Error in fetch_decisions: {e}")

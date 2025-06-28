@@ -1,11 +1,11 @@
 .env
-.vscode
 /venv
+/__pycache__
+/.vscode
+/cache
 /datasets/energy_usage.txt
 /datasets/energy_usage.csv
 /ml_models
-/utils/__pycache__
-/utils/cache
 /notebooks/.ipynb_checkpoints
 /notebooks/.cache.sqlite
-/archives
+/solar_utils/__pycache__

@@ -266,13 +266,23 @@
         }
 
         async function updateDashboard() {
+            const date_now = new Date();
+            console.log(date_now);
             const data = await fetchSolarData();
             if (!data || data.length === 0 || !Array.isArray(data)) {
                 throw new Error('Invalid or empty API');
             }
 
+            const yyyy = date_now.getFullYear();
+            const mm = String(date_now.getMonth() + 1).padStart(2, '0');
+            const dd = String(date_now.getDate()).padStart(2, '0');
+            const hh = String(date_now.getHours()).padStart(2, '0');
+            const currentTimeStr = `${yyyy}-${mm}-${dd} ${hh}:00:00`;
+
             // Update real-time metrics
-            const current = data[0];
+            const current = data.find(row => row.time === currentTimeStr) || data[0];  // fallback to first if not found
+            console.log("Current data:", current);
+            
             document.getElementById("temperature").textContent = current.temperature.toFixed(2);
             // document.getElementById("solar-output").textContent = current.solar_output.toFixed(2);
             document.getElementById("battery-remaining").textContent = current.battery_charge.toFixed(2);
