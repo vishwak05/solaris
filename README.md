@@ -15,7 +15,6 @@ A web-based application for optimizing solar energy usage in smart homes by pred
 - Python 3.8+
 - Flask
 - Scikit-learn
-- 
 - Requests
 - Chart.js
 
