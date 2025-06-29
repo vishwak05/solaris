@@ -8,4 +8,5 @@
 /ml_models
 /notebooks/.ipynb_checkpoints
 /notebooks/.cache.sqlite
+/notebooks/cache
 /solar_utils/__pycache__

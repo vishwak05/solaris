@@ -81,7 +81,7 @@ solaris/
 
 4. Start the server:
 
-    Start the flask server using command `python app.py` in terminal within project directory.
+    Start the flask server executing the command `flask run` or `python app.py` in terminal within project directory.
 
 4. Access the Application:
 
