@@ -7,7 +7,7 @@ A web-based application for optimizing solar energy usage in smart homes by pred
 - Automated energy usage recommendations
 - Solar energy and battery metrics visualization
 - Dynamic web interface with Flask
-- OpenWeather API integration for weather data
+- Open-Meteo API integration for weather data
 - Modular API for irradiance and weather data retrieval
 - User-friendly dashboards and reports
 
